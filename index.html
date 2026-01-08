@@ -1,0 +1,1081 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>MASTER 2026</title>
+  <style>
+    :root{
+      --bg:#0b0d10; --card:#12161c; --muted:#8b96a7; --text:#e8eef7;
+      --line:#1f2630; --accent:#2f81f7; --bad:#ff5a5f; --warn:#ffb020; --ok:#2dd36f;
+      --r:16px; --pad:14px; --fs:18px;
+    }
+    *{box-sizing:border-box}
+    body{ margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background:var(--bg); color:var(--text); }
+    header{
+      position:sticky; top:0; z-index:10;
+      background:rgba(11,13,16,.92); backdrop-filter: blur(8px);
+      border-bottom:1px solid var(--line);
+      padding:14px 14px 10px;
+    }
+    h1{margin:0; font-size:20px; letter-spacing:.2px}
+    .sub{color:var(--muted); font-size:13px; margin-top:4px}
+    main{padding:14px; padding-bottom:90px}
+    .row{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
+    .field{
+      flex:1; min-width:140px;
+      background:var(--card); border:1px solid var(--line); border-radius:var(--r);
+      padding:12px;
+    }
+    .field label{display:block; color:var(--muted); font-size:12px; margin-bottom:6px}
+    select, input, textarea{
+      width:100%;
+      font-size:var(--fs);
+      padding:12px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:#0f1318;
+      color:var(--text);
+      outline:none;
+    }
+    textarea{min-height:72px; resize:vertical; font-size:16px}
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      gap:8px;
+      padding:14px 14px;
+      border-radius:14px;
+      border:1px solid var(--line);
+      background:var(--card);
+      color:var(--text);
+      font-weight:600;
+      width:100%;
+      font-size:16px;
+      cursor:pointer;
+    }
+    .btn.primary{background:var(--accent); border-color:transparent}
+    .btn:active{transform:scale(.99)}
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:18px;
+      overflow:hidden;
+      margin-top:12px;
+    }
+    .cardHead{
+      display:flex; justify-content:space-between; align-items:flex-start;
+      padding:14px var(--pad);
+      cursor:pointer;
+      gap:10px;
+    }
+    .leftCol{flex:1; min-width:0}
+    .title{font-weight:800; font-size:16px}
+    .target{color:var(--muted); font-size:12px; margin-top:2px; line-height:1.35}
+    .chev{color:var(--muted); font-size:18px}
+    .cardBody{
+      border-top:1px solid var(--line);
+      padding:12px var(--pad) 14px;
+      display:none;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap:10px;
+      margin-top:10px;
+    }
+    .grid .small label{font-size:11px}
+    .actions{display:flex; gap:10px; margin-top:12px}
+    .actions button{flex:1}
+    .pill{
+      display:inline-block;
+      font-size:12px;
+      padding:5px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      color:var(--muted);
+      margin-left:8px;
+      white-space:nowrap;
+    }
+    .pill.warn{border-color:rgba(255,176,32,.35); color:var(--warn)}
+    .pill.ok{border-color:rgba(45,211,111,.35); color:var(--ok)}
+    .toast{
+      position:fixed; left:14px; right:14px; bottom:86px;
+      background:#0f1318;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 14px;
+      display:none;
+      color:var(--text);
+      z-index:30;
+    }
+    nav{
+      position:fixed; left:0; right:0; bottom:0;
+      background:rgba(11,13,16,.92); backdrop-filter: blur(8px);
+      border-top:1px solid var(--line);
+      display:flex;
+      padding:10px;
+      gap:10px;
+      z-index:20;
+    }
+    nav button{flex:1}
+    .hidden{display:none !important}
+    .mono{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace}
+    .tiny{font-size:12px;color:var(--muted); margin-top:6px}
+
+    .restBtn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#0f1318;
+      color:var(--text);
+      font-size:12px;
+      cursor:pointer;
+      margin-top:8px;
+      gap:8px;
+      width:fit-content;
+    }
+    .restBtn.running{
+      border-color:rgba(45,211,111,.35);
+      color:var(--ok);
+    }
+    .restBtn.warn{
+      border-color:rgba(255,176,32,.35);
+      color:var(--warn);
+    }
+
+    /* ===== FULLSCREEN TIMER OVERLAY ===== */
+    .overlay{
+      position:fixed;
+      inset:0;
+      background:rgba(11,13,16,.96);
+      backdrop-filter: blur(10px);
+      display:none;
+      z-index:9999;
+      padding:18px;
+    }
+    .overlay.show{display:flex}
+    .overlayCard{
+      margin:auto;
+      width:min(520px, 100%);
+      background:linear-gradient(180deg, #0f1318, #0b0d10);
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:18px;
+    }
+    .ovTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .ovTitle{
+      font-weight:900;
+      font-size:16px;
+      line-height:1.2;
+    }
+    .ovSub{
+      margin-top:6px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.3;
+    }
+    .ovTime{
+      margin:18px 0 14px;
+      text-align:center;
+      font-weight:1000;
+      font-size:72px;
+      letter-spacing:1px;
+    }
+    .ovPills{
+      display:flex;
+      gap:8px;
+      justify-content:center;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    .ovPill{
+      border:1px solid var(--line);
+      color:var(--muted);
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:12px;
+    }
+    .ovPill.ok{border-color:rgba(45,211,111,.35); color:var(--ok)}
+    .ovPill.warn{border-color:rgba(255,176,32,.35); color:var(--warn)}
+    .ovBtns{
+      display:flex;
+      gap:10px;
+      margin-top:10px;
+    }
+    .ovBtns .btn{width:100%}
+    .btn.danger{background:transparent; border-color:rgba(255,90,95,.35); color:var(--bad)}
+    .btn.ghost{background:transparent}
+    .btn.small{padding:12px 12px; font-size:14px; border-radius:14px}
+  </style>
+</head>
+
+<body>
+<header>
+  <h1>MASTER 2026</h1>
+  <div class="sub">Allenamento • dati rapidi (Kg / Rep / RIR) • Recuperi fullscreen + Note + Incrementi</div>
+
+  <div class="row">
+    <div class="field" style="min-width:220px;">
+      <label>Profilo (Ciclo)</label>
+      <select id="profile"></select>
+      <div class="tiny" id="profileHint"></div>
+    </div>
+
+    <div class="field">
+      <label>Giorno</label>
+      <select id="day"></select>
+    </div>
+
+    <div class="field">
+      <label>Settimana</label>
+      <select id="week"></select>
+    </div>
+
+    <div class="field">
+      <label>Data</label>
+      <input id="date" />
+    </div>
+  </div>
+</header>
+
+<main id="screenWorkout">
+  <div id="exerciseList"></div>
+  <div style="margin-top:14px;">
+    <button class="btn primary" id="saveWorkout">✅ SALVA ALLENAMENTO</button>
+  </div>
+</main>
+
+<main id="screenWeek" class="hidden">
+  <div class="card">
+    <div class="cardHead">
+      <div class="leftCol">
+        <div class="title">Settimana</div>
+        <div class="target">Decisione (a casa, 5 minuti) • SALIRE / TENERE / SCARICARE</div>
+      </div>
+    </div>
+    <div class="cardBody" style="display:block;">
+      <div class="row">
+        <div class="field">
+          <label>Profilo</label>
+          <select id="w_profile"></select>
+        </div>
+        <div class="field">
+          <label>Settimana n°</label>
+          <select id="w_week"></select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="field">
+          <label>Allenamenti completati</label>
+          <input id="w_done" inputmode="numeric" placeholder="0–4" />
+        </div>
+        <div class="field">
+          <label>Decisione prossima settimana</label>
+          <select id="w_decision">
+            <option value="">— scegli —</option>
+            <option>SALIRE</option>
+            <option>TENERE</option>
+            <option>SCARICARE</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:10px;">
+        <label>Motivo (max 120 caratteri)</label>
+        <input id="w_reason" maxlength="120" placeholder="Es. Panca ok, RDL ok, sonno scarso → TENERE" />
+      </div>
+
+      <div class="field" style="margin-top:10px;">
+        <label>Regola incremento (riassunto)</label>
+        <div class="tiny">
+          • SALIRE solo se serie pulite + RIR >= soglia profilo + nessun allarme (glicemia/sonno/neuropatia).<br>
+          • TENERE se dubbio o 1 parametro peggiora.<br>
+          • SCARICARE se SNC/sonno/neuropatia/glicemia peggiorano o fatica alta.
+        </div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <button class="btn primary" id="saveWeek">💾 SALVA SETTIMANA</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<main id="screenHistory" class="hidden">
+  <div class="card">
+    <div class="cardHead">
+      <div class="leftCol">
+        <div class="title">Storico</div>
+        <div class="target">Salvati localmente sul telefono (include profilo + settimana)</div>
+      </div>
+    </div>
+    <div class="cardBody" style="display:block;">
+      <div id="historyList" class="mono" style="color:var(--muted); line-height:1.5;"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="cardHead">
+      <div class="leftCol">
+        <div class="title">Backup</div>
+        <div class="target">Export / Import manuale</div>
+      </div>
+    </div>
+    <div class="cardBody" style="display:block;">
+      <button class="btn" id="exportJson">⬇️ Esporta Backup (JSON)</button>
+      <div style="height:10px"></div>
+      <input type="file" id="importJson" accept="application/json" />
+      <div style="height:10px"></div>
+      <button class="btn" id="wipeAll">🗑️ Cancella TUTTO (attenzione)</button>
+    </div>
+  </div>
+</main>
+
+<!-- FULLSCREEN TIMER OVERLAY -->
+<div class="overlay" id="timerOverlay" aria-hidden="true">
+  <div class="overlayCard">
+    <div class="ovTop">
+      <div style="min-width:0;">
+        <div class="ovTitle" id="ovExercise">Recupero</div>
+        <div class="ovSub" id="ovMeta">—</div>
+      </div>
+      <button class="btn ghost small" id="ovClose" type="button">✕</button>
+    </div>
+
+    <div class="ovTime" id="ovTime">0:00</div>
+
+    <div class="ovPills">
+      <div class="ovPill" id="ovRestPill">Recupero: —</div>
+      <div class="ovPill" id="ovStatePill">Stato: —</div>
+    </div>
+
+    <div class="ovBtns">
+      <button class="btn primary" id="ovStartStop" type="button">▶ Avvia</button>
+      <button class="btn danger" id="ovReset" type="button">↺ Reset</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<nav>
+  <button class="btn" id="tabWorkout">Allenamento</button>
+  <button class="btn" id="tabWeek">Settimana</button>
+  <button class="btn" id="tabHistory">Storico</button>
+</nav>
+
+<script>
+  // ----------------- PROFILI (C1–C4) -----------------
+  const PROFILES = {
+    C1: {
+      label: "C1 – Forza & Metabolismo",
+      hint: "RIR 2 • no cedimento • tecnica pulita • recuperi completi",
+      days: {
+        "Lunedì – Spinta": [
+          {name:"Panca piana bilanciere", target:"5×5", sets:5, rest:"3′", notes:"Scapole addotte, traiettoria stabile, stop 1″ se serve."},
+          {name:"Military press manubri seduto", target:"4×6", sets:4, rest:"2′", notes:"Core attivo, no slanci, ROM controllato."},
+          {name:"Chest press inclinata", target:"3×8", sets:3, rest:"2′", notes:"Spalle basse, chiusura controllata, niente rimbalzi."},
+          {name:"Alzate laterali", target:"3×12", sets:3, rest:"90″", notes:"Gomiti morbidi, salita controllata, niente slanci."},
+          {name:"Push down cavi", target:"3×10", sets:3, rest:"90″", notes:"Gomiti fermi, estensione completa, controllo."},
+        ],
+        "Martedì – Trazione": [
+          {name:"Lat machine presa neutra", target:"5×5", sets:5, rest:"2′30″", notes:"Depressione scapole prima di tirare, no dondolo."},
+          {name:"Rematore manubrio", target:"4×6", sets:4, rest:"2′", notes:"Schiena neutra, gomito verso fianco, pausa 1″ in alto."},
+          {name:"Pulley basso", target:"3×8", sets:3, rest:"2′", notes:"Petto su, tirata al basso addome, controllo ritorno."},
+          {name:"Curl bilanciere EZ", target:"3×8", sets:3, rest:"90″", notes:"Gomiti fermi, niente oscillazioni del busto."},
+          {name:"Curl manubri alternato", target:"2×10", sets:2, rest:"90″", notes:"Supinazione piena, controllo eccentrica."},
+        ],
+        "Mercoledì – Gambe": [
+          {name:"Leg press", target:"5×6", sets:5, rest:"3′", notes:"Piedi leggermente alti, spinta controllata, no lockout violento."},
+          {name:"Romanian Deadlift", target:"4×6", sets:4, rest:"2′30″", notes:"Hinge puro, schiena neutra, senti femorali, no rimbalzi."},
+          {name:"Hip Thrust", target:"3×8", sets:3, rest:"2′", notes:"Pausa 1″ in alto, bacino neutro, mento leggermente retratto."},
+          {name:"Leg curl", target:"3×8", sets:3, rest:"2′", notes:"Contrazione piena, eccentrica lenta, no strappi."},
+          {name:"Calf press", target:"4×10", sets:4, rest:"90″", notes:"ROM completo, pausa 1″ in alto e 1″ in basso."},
+        ],
+        "Giovedì – Richiamo + Core": [
+          {name:"Chest press", target:"3×10", sets:3, rest:"90″", notes:"Controllo totale, senza cedimento."},
+          {name:"Lat machine", target:"3×10", sets:3, rest:"90″", notes:"Scapole giù, tirata pulita."},
+          {name:"Alzate laterali", target:"3×12", sets:3, rest:"75–90″", notes:"Tecnica pulita, pompaggio leggero."},
+          {name:"Crunch inverso", target:"3×15", sets:3, rest:"60″", notes:"Controllo, bacino in retroversione, no slanci."},
+          {name:"Plank", target:"3×40–60″", sets:3, rest:"60″", notes:"Addome duro, glutei attivi, schiena neutra."},
+        ],
+      }
+    },
+
+    C2: {
+      label: "C2 – Ipertrofia & Massa Controllata",
+      hint: "RIR 1–2 • cedimento SOLO isolamenti (ultima serie) • densità",
+      days: {
+        "Lunedì – Spinta": [
+          {name:"Panca piana bilanciere", target:"4×6–8", sets:4, rest:"2′30″", notes:"Controllo totale, niente cedimento sui multi."},
+          {name:"Panca inclinata manubri", target:"3×8–10", sets:3, rest:"2′", notes:"ROM pieno, spalle giù."},
+          {name:"Chest press", target:"3×10–12", sets:3, rest:"90″", notes:"Ultima serie: vicino a cedimento se stabile."},
+          {name:"Alzate laterali", target:"4×12–15", sets:4, rest:"75″", notes:"Ultima serie: puoi spingere."},
+          {name:"French press ai cavi", target:"3×10–12", sets:3, rest:"90″", notes:"Stretch controllato, gomiti fermi."},
+        ],
+        "Martedì – Trazione": [
+          {name:"Lat machine presa neutra", target:"4×8", sets:4, rest:"2′", notes:"Depressione scapole, tirata pulita."},
+          {name:"Rematore manubrio", target:"3×8–10", sets:3, rest:"2′", notes:"Pausa 1″ in alto, no slanci."},
+          {name:"Pulley basso", target:"3×10–12", sets:3, rest:"90″", notes:"Controllo eccentrica."},
+          {name:"Face pull", target:"3×12–15", sets:3, rest:"75″", notes:"Corda verso occhi, gomiti alti."},
+          {name:"Curl bilanciere EZ", target:"3×8–10", sets:3, rest:"90″", notes:"Ultima serie puoi spingere."},
+          {name:"Curl manubri inclinati", target:"2×12", sets:2, rest:"75″", notes:"Eccentrica lenta, ROM pieno."},
+        ],
+        "Mercoledì – Gambe": [
+          {name:"Leg press", target:"4×8–10", sets:4, rest:"2′30″", notes:"No DOMS invalidanti, tecnica pulita."},
+          {name:"Romanian Deadlift", target:"4×8", sets:4, rest:"2′", notes:"Hinge controllato, schiena neutra."},
+          {name:"Affondi indietro", target:"3×10 per lato", sets:3, rest:"2′", notes:"Passo indietro, ginocchio stabile."},
+          {name:"Leg curl", target:"3×10–12", sets:3, rest:"90″", notes:"Contrazione piena, no strappi."},
+          {name:"Calf press", target:"4×12–15", sets:4, rest:"75″", notes:"ROM completo."},
+        ],
+        "Giovedì – Metabolico + Braccia + Core": [
+          {name:"Chest press + Lat machine (Superset)", target:"3×12–15", sets:3, rest:"60–75″", notes:"Densità alta ma non distruttiva."},
+          {name:"Alzate laterali + Curl cavi (Superset)", target:"3×15", sets:3, rest:"60–75″", notes:"Tecnica, bruciore ok."},
+          {name:"Push down + Curl manubri (Superset)", target:"3×12", sets:3, rest:"60–75″", notes:"Ultima serie isolamenti può spingere."},
+          {name:"Crunch inverso", target:"3×15", sets:3, rest:"60″", notes:"Controllo."},
+          {name:"Plank", target:"3×40–60″", sets:3, rest:"60″", notes:"Qualità."},
+        ],
+      }
+    },
+
+    C3: {
+      label: "C3 – Definizione Controllata",
+      hint: "Carichi mantenuti • volume leggermente ↓ • cedimento rarissimo",
+      days: {
+        "Lunedì – Spinta": [
+          {name:"Panca piana bilanciere", target:"5×4–6", sets:5, rest:"3′", notes:"Carico alto, tecnica pulita."},
+          {name:"Panca inclinata manubri", target:"3×8", sets:3, rest:"2′", notes:"ROM pieno."},
+          {name:"Chest press", target:"3×10", sets:3, rest:"90″", notes:"Densità controllata."},
+          {name:"Alzate laterali", target:"4×15", sets:4, rest:"60–75″", notes:"Bruciore ok, no slanci."},
+          {name:"Push down cavi", target:"3×12", sets:3, rest:"75″", notes:"Controllo."},
+        ],
+        "Martedì – Trazione": [
+          {name:"Lat machine", target:"5×5", sets:5, rest:"2′30″", notes:"Depressione scapole, no dondolo."},
+          {name:"Rematore manubrio", target:"3×8", sets:3, rest:"2′", notes:"Pausa in alto."},
+          {name:"Pulley", target:"3×10", sets:3, rest:"90″", notes:"Controllo."},
+          {name:"Face pull", target:"3×15", sets:3, rest:"75″", notes:"Postura."},
+          {name:"Curl bilanciere", target:"3×10", sets:3, rest:"75″", notes:"No cheating."},
+        ],
+        "Mercoledì – Gambe": [
+          {name:"Leg press", target:"4×8", sets:4, rest:"2′30″", notes:"Qualità, no DOMS lunghi."},
+          {name:"Romanian Deadlift", target:"3×8", sets:3, rest:"2′", notes:"Hinge controllato."},
+          {name:"Affondi indietro", target:"3×10 per lato", sets:3, rest:"2′", notes:"Stabilità."},
+          {name:"Leg curl", target:"3×12", sets:3, rest:"90″", notes:"Controllo."},
+          {name:"Calf press", target:"3×15", sets:3, rest:"75″", notes:"ROM completo."},
+        ],
+        "Giovedì – Metabolico Controllato + Core": [
+          {name:"Chest press + Lat machine (Superset)", target:"3×15", sets:3, rest:"60–75″", notes:"Sudo sì, distruzione no."},
+          {name:"Alzate laterali + Curl cavi (Superset)", target:"3×15", sets:3, rest:"60–75″", notes:"Densità."},
+          {name:"Push down + Crunch inverso (Superset)", target:"3×15", sets:3, rest:"60–75″", notes:"Controllo."},
+          {name:"Plank", target:"3×60″", sets:3, rest:"60″", notes:"Qualità."},
+        ],
+      }
+    },
+
+    C4: {
+      label: "C4 – Consolidamento & Ricarica",
+      hint: "RIR 3–4 • breve • ristorativo • qualità",
+      days: {
+        "Lunedì – Spinta qualità": [
+          {name:"Chest press", target:"3×6–10", sets:3, rest:"2′", notes:"RIR 3–4, tecnico."},
+          {name:"Military manubri (leggero)", target:"3×6–10", sets:3, rest:"2′", notes:"Controllo, no fatica nervosa."},
+          {name:"Alzate laterali", target:"3×10–15", sets:3, rest:"75–90″", notes:"Pulito."},
+          {name:"Push down cavi", target:"2×10–12", sets:2, rest:"75–90″", notes:"Pulito."},
+        ],
+        "Martedì – Trazione qualità": [
+          {name:"Lat machine", target:"3×6–10", sets:3, rest:"2′", notes:"Tecnica e postura."},
+          {name:"Rematore (macchina o manubrio)", target:"3×6–10", sets:3, rest:"2′", notes:"Controllo scapole."},
+          {name:"Face pull", target:"3×12–15", sets:3, rest:"75–90″", notes:"Leggero."},
+          {name:"Curl EZ", target:"2×10–12", sets:2, rest:"75–90″", notes:"Pulito."},
+        ],
+        "Mercoledì – Gambe tecniche": [
+          {name:"Leg press (leggera)", target:"3×8–10", sets:3, rest:"2′", notes:"RIR 3–4, niente DOMS."},
+          {name:"Hip hinge (RDL leggero)", target:"3×8", sets:3, rest:"2′", notes:"Tecnica."},
+          {name:"Leg curl", target:"2×10–12", sets:2, rest:"90″", notes:"Controllo."},
+          {name:"Calf press", target:"2×12–15", sets:2, rest:"75–90″", notes:"ROM completo."},
+        ],
+        "Giovedì – Mobilità + Core": [
+          {name:"Mobilità anche/spalle (nota)", target:"5–8 min", sets:1, rest:"—", notes:"Sequenza dolce, senza forzare."},
+          {name:"Plank", target:"3×40–60″", sets:3, rest:"60″", notes:"Core qualità."},
+          {name:"Respirazione (nota)", target:"3–5 min", sets:1, rest:"—", notes:"Respirazione diaframmatica."},
+        ],
+      }
+    }
+  };
+
+  // ----------------- STORAGE -----------------
+  const LS_KEYS = {
+    workouts: "master2026_workouts_v4_fullscreen_timer",
+    week: "master2026_week_v4_fullscreen_timer"
+  };
+  const $ = (id)=>document.getElementById(id);
+
+  function todayISO(){
+    const d=new Date();
+    const pad=(n)=>String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  }
+
+  function toast(msg){
+    const t=$("toast");
+    t.textContent=msg;
+    t.style.display="block";
+    clearTimeout(window.__t);
+    window.__t=setTimeout(()=>t.style.display="none", 1800);
+  }
+
+  function uid(){
+    try{ return crypto.randomUUID(); }catch{ return "id_"+Math.random().toString(16).slice(2)+Date.now(); }
+  }
+
+  function getWorkouts(){
+    try{ return JSON.parse(localStorage.getItem(LS_KEYS.workouts)||"[]"); }catch{ return []; }
+  }
+  function setWorkouts(arr){ localStorage.setItem(LS_KEYS.workouts, JSON.stringify(arr)); }
+
+  function getWeeks(){
+    try{ return JSON.parse(localStorage.getItem(LS_KEYS.week)||"[]"); }catch{ return []; }
+  }
+  function setWeeks(arr){ localStorage.setItem(LS_KEYS.week, JSON.stringify(arr)); }
+
+  // ----------------- TIMER HELPERS -----------------
+  function parseRestToSeconds(restStr){
+    if(!restStr) return 90;
+    let s = String(restStr).trim();
+    s = s.replace("–","-");
+    if(s.includes("-")) s = s.split("-")[0].trim();
+    if(/^\d+:\d+$/.test(s)){
+      const [m,sec]=s.split(":").map(n=>parseInt(n,10));
+      return (m*60)+sec;
+    }
+    s = s.replace(/′|’|'/g,"m").replace(/″|"/g,"s");
+    s = s.replace(/\s+/g,"").toLowerCase();
+    s = s.replace("min","m");
+    if(/^\d+$/.test(s)) return parseInt(s,10);
+    let total = 0;
+    const mm = s.match(/(\d+)m/);
+    const ss = s.match(/(\d+)s/);
+    if(mm) total += parseInt(mm[1],10)*60;
+    if(ss) total += parseInt(ss[1],10);
+    return total>0 ? total : 90;
+  }
+  function fmtMMSS(total){
+    const m = Math.floor(total/60);
+    const s = total%60;
+    return `${m}:${String(s).padStart(2,'0')}`;
+  }
+
+  // ----------------- FULLSCREEN TIMER STATE -----------------
+  const TIMER = {
+    running:false,
+    handle:null,
+    base:90,
+    remaining:0,
+    exerciseName:"",
+    meta:"",
+    restLabel:"",
+  };
+
+  function overlayOpen({exerciseName, meta, restLabel, seconds}){
+    TIMER.exerciseName = exerciseName || "Recupero";
+    TIMER.meta = meta || "";
+    TIMER.restLabel = restLabel || "—";
+    TIMER.base = seconds || 90;
+    TIMER.remaining = TIMER.base;
+    TIMER.running = false;
+
+    $("ovExercise").textContent = TIMER.exerciseName;
+    $("ovMeta").textContent = TIMER.meta;
+    $("ovRestPill").textContent = `Recupero: ${TIMER.restLabel}`;
+    $("ovStatePill").textContent = "Stato: pronto";
+    $("ovStatePill").className = "ovPill";
+    $("ovTime").textContent = fmtMMSS(TIMER.remaining);
+
+    $("ovStartStop").textContent = "▶ Avvia";
+    $("timerOverlay").classList.add("show");
+    $("timerOverlay").setAttribute("aria-hidden","false");
+
+    // evita scroll sotto overlay
+    document.body.style.overflow = "hidden";
+  }
+
+  function overlayClose(){
+    // stop timer se attivo
+    if(TIMER.handle){
+      clearInterval(TIMER.handle);
+      TIMER.handle = null;
+    }
+    TIMER.running = false;
+    $("timerOverlay").classList.remove("show");
+    $("timerOverlay").setAttribute("aria-hidden","true");
+    document.body.style.overflow = "";
+  }
+
+  function overlayStart(){
+    if(TIMER.running) return;
+    TIMER.running = true;
+    $("ovStatePill").textContent = "Stato: in corso";
+    $("ovStatePill").className = "ovPill ok";
+    $("ovStartStop").textContent = "⏸ Pausa";
+
+    TIMER.handle = setInterval(()=>{
+      TIMER.remaining--;
+      if(TIMER.remaining <= 0){
+        clearInterval(TIMER.handle);
+        TIMER.handle = null;
+        TIMER.running = false;
+        TIMER.remaining = 0;
+
+        $("ovTime").textContent = "0:00";
+        $("ovStatePill").textContent = "Stato: FINITO";
+        $("ovStatePill").className = "ovPill warn";
+        $("ovStartStop").textContent = "▶ Riparti";
+        if(navigator.vibrate) navigator.vibrate([160,80,160]);
+        return;
+      }
+      $("ovTime").textContent = fmtMMSS(TIMER.remaining);
+    }, 1000);
+  }
+
+  function overlayPause(){
+    if(!TIMER.running) return;
+    TIMER.running = false;
+    if(TIMER.handle){
+      clearInterval(TIMER.handle);
+      TIMER.handle = null;
+    }
+    $("ovStatePill").textContent = "Stato: pausa";
+    $("ovStatePill").className = "ovPill";
+    $("ovStartStop").textContent = "▶ Riprendi";
+  }
+
+  function overlayReset(){
+    if(TIMER.handle){
+      clearInterval(TIMER.handle);
+      TIMER.handle = null;
+    }
+    TIMER.running = false;
+    TIMER.remaining = TIMER.base;
+    $("ovTime").textContent = fmtMMSS(TIMER.remaining);
+    $("ovStatePill").textContent = "Stato: pronto";
+    $("ovStatePill").className = "ovPill";
+    $("ovStartStop").textContent = "▶ Avvia";
+  }
+
+  // overlay buttons
+  $("ovClose").onclick = ()=>overlayClose();
+  $("timerOverlay").addEventListener("click", (e)=>{
+    // chiudi se tocchi fuori card
+    if(e.target === $("timerOverlay")) overlayClose();
+  });
+  document.addEventListener("keydown", (e)=>{
+    if(e.key === "Escape" && $("timerOverlay").classList.contains("show")) overlayClose();
+  });
+
+  $("ovStartStop").onclick = ()=>{
+    if(!TIMER.running){
+      // se era finito, riparte da base
+      if(TIMER.remaining === 0) TIMER.remaining = TIMER.base;
+      $("ovTime").textContent = fmtMMSS(TIMER.remaining);
+      overlayStart();
+    }else{
+      overlayPause();
+    }
+  };
+  $("ovReset").onclick = ()=>overlayReset();
+
+  // ----------------- RIR FLOOR -----------------
+  function profileRirFloor(profileKey){
+    if(profileKey==="C1") return 2;
+    if(profileKey==="C2") return 1;
+    if(profileKey==="C3") return 1;
+    if(profileKey==="C4") return 3;
+    return 2;
+  }
+
+  // ----------------- UI: TABS -----------------
+  function show(screen){
+    $("screenWorkout").classList.toggle("hidden", screen!=="workout");
+    $("screenWeek").classList.toggle("hidden", screen!=="week");
+    $("screenHistory").classList.toggle("hidden", screen!=="history");
+  }
+  $("tabWorkout").onclick=()=>show("workout");
+  $("tabWeek").onclick=()=>show("week");
+  $("tabHistory").onclick=()=>{renderHistory(); show("history");};
+
+  // ----------------- UI: SELECTS -----------------
+  function fillWeekSelect(selId, max=16){
+    const sel=$(selId);
+    sel.innerHTML="";
+    for(let i=1;i<=max;i++){
+      const o=document.createElement("option");
+      o.value=String(i);
+      o.textContent=`Settimana ${i}`;
+      sel.appendChild(o);
+    }
+  }
+
+  function initProfileSelect(){
+    const sel=$("profile");
+    const selW=$("w_profile");
+    sel.innerHTML=""; selW.innerHTML="";
+    Object.entries(PROFILES).forEach(([k,p])=>{
+      const o=document.createElement("option");
+      o.value=k; o.textContent=p.label;
+      sel.appendChild(o);
+
+      const o2=document.createElement("option");
+      o2.value=k; o2.textContent=p.label;
+      selW.appendChild(o2);
+    });
+
+    sel.onchange=()=>{
+      $("profileHint").textContent = PROFILES[sel.value].hint || "";
+      initDaySelect();
+      renderExercises();
+      $("w_profile").value = sel.value;
+    };
+
+    selW.onchange=()=>{
+      $("profile").value = selW.value;
+      $("profile").dispatchEvent(new Event("change"));
+    };
+  }
+
+  function activeProfileKey(){ return $("profile").value || "C1"; }
+  function activeProfile(){ return PROFILES[activeProfileKey()]; }
+  function activeDays(){ return activeProfile().days; }
+
+  function initDaySelect(){
+    const daySel=$("day");
+    daySel.innerHTML="";
+    Object.keys(activeDays()).forEach(k=>{
+      const o=document.createElement("option");
+      o.value=k; o.textContent=k;
+      daySel.appendChild(o);
+    });
+    daySel.onchange=()=>renderExercises();
+  }
+
+  // ----------------- EXERCISES RENDER -----------------
+  function mkInput(label, placeholder=""){
+    const wrap=document.createElement("div");
+    wrap.className="field small";
+    const lab=document.createElement("label");
+    lab.textContent=label;
+    const inp=document.createElement("input");
+    inp.placeholder=placeholder;
+    inp.inputMode="numeric";
+    wrap.appendChild(lab); wrap.appendChild(inp);
+    return {wrap, inp};
+  }
+
+  function renderExercises(){
+    const day=$("day").value;
+    const list=$("exerciseList");
+    list.innerHTML="";
+    const items = activeDays()[day] || [];
+
+    items.forEach((ex, idx)=>{
+      const card=document.createElement("div");
+      card.className="card";
+
+      const head=document.createElement("div");
+      head.className="cardHead";
+
+      const left=document.createElement("div");
+      left.className="leftCol";
+
+      const title=document.createElement("div");
+      title.className="title";
+      title.textContent=ex.name;
+
+      const target=document.createElement("div");
+      target.className="target";
+      const restTxt = ex.rest ? ` • Recupero: ${ex.rest}` : "";
+      target.textContent=`Target: ${ex.target}${restTxt}`;
+
+      // Bottone recupero: ORA apre overlay fullscreen
+      const restBtn=document.createElement("button");
+      restBtn.type="button";
+      restBtn.className="restBtn";
+      restBtn.textContent="⏱ Recupero";
+      restBtn.onclick=(e)=>{
+        e.stopPropagation();
+        const seconds = parseRestToSeconds(ex.rest || "90");
+        overlayOpen({
+          exerciseName: ex.name,
+          meta: `${activeProfileKey()} • ${$("day").value} • Settimana ${$("week").value || "1"}`,
+          restLabel: ex.rest || "90s",
+          seconds
+        });
+      };
+
+      left.appendChild(title);
+      left.appendChild(target);
+      left.appendChild(restBtn);
+
+      const right=document.createElement("div");
+      right.innerHTML=`<span class="pill" id="pill_${idx}">—</span><span class="chev">▾</span>`;
+
+      head.appendChild(left);
+      head.appendChild(right);
+
+      const body=document.createElement("div");
+      body.className="cardBody";
+
+      const inputs=[];
+
+      for(let s=1;s<=ex.sets;s++){
+        const grid=document.createElement("div");
+        grid.className="grid";
+        const kg=mkInput(`S${s} Kg`);
+        const rep=mkInput(`Rep`);
+        const rir=mkInput(`RIR`);
+        grid.appendChild(kg.wrap); grid.appendChild(rep.wrap); grid.appendChild(rir.wrap);
+        body.appendChild(grid);
+        inputs.push({kg:kg.inp, rep:rep.inp, rir:rir.inp});
+      }
+
+      const notesWrap=document.createElement("div");
+      notesWrap.className="field";
+      notesWrap.style.marginTop="10px";
+      const notesLabel=document.createElement("label");
+      notesLabel.textContent="Note / Esecuzione (modificabile)";
+      const notesArea=document.createElement("textarea");
+      notesArea.placeholder="Scrivi note tue qui...";
+      notesArea.value = ex.notes || "";
+      notesWrap.appendChild(notesLabel);
+      notesWrap.appendChild(notesArea);
+      body.appendChild(notesWrap);
+
+      const actions=document.createElement("div");
+      actions.className="actions";
+
+      const copy=document.createElement("button");
+      copy.className="btn";
+      copy.textContent="Copia Kg S1 → tutte";
+      copy.onclick=(e)=>{
+        e.stopPropagation();
+        const v=inputs[0]?.kg.value||"";
+        inputs.forEach(x=>x.kg.value=v);
+        toast("Kg copiati");
+      };
+
+      const reset=document.createElement("button");
+      reset.className="btn";
+      reset.textContent="Reset";
+      reset.onclick=(e)=>{
+        e.stopPropagation();
+        inputs.forEach(x=>{x.kg.value=""; x.rep.value=""; x.rir.value="";});
+        notesArea.value = ex.notes || "";
+        updatePill(idx, inputs);
+        toast("Reset fatto");
+      };
+
+      actions.appendChild(copy);
+      actions.appendChild(reset);
+      body.appendChild(actions);
+
+      head.onclick=()=>{
+        const open = body.style.display==="block";
+        body.style.display = open ? "none" : "block";
+        right.querySelector(".chev").textContent = open ? "▾" : "▴";
+      };
+
+      inputs.forEach(x=>x.rir.addEventListener("input", ()=>updatePill(idx, inputs)));
+      updatePill(idx, inputs);
+
+      card._notesArea = notesArea;
+
+      card.appendChild(head);
+      card.appendChild(body);
+      list.appendChild(card);
+    });
+  }
+
+  function updatePill(idx, inputs){
+    const pill=$(`pill_${idx}`);
+    if(!pill) return;
+
+    const rirs = inputs
+      .map(x=>parseFloat(String(x.rir.value).replace(",", ".")))
+      .filter(n=>!isNaN(n));
+
+    if(rirs.length===0){
+      pill.textContent="—";
+      pill.className="pill";
+      return;
+    }
+
+    const floor = profileRirFloor(activeProfileKey());
+    const low = rirs.some(r=>r < floor);
+
+    if(low){
+      pill.textContent = `RIR basso (<${floor}) → NON salire`;
+      pill.className = "pill warn";
+    }else{
+      pill.textContent = `OK (RIR ≥ ${floor}) → valuta +1kg prossima`;
+      pill.className = "pill ok";
+    }
+  }
+
+  // ----------------- SAVE WORKOUT -----------------
+  $("saveWorkout").onclick=()=>{
+    const profileKey = activeProfileKey();
+    const profileLabel = activeProfile().label;
+
+    const day=$("day").value;
+    const week=$("week").value || "1";
+    const date=$("date").value.trim() || todayISO();
+
+    const cards=[...document.querySelectorAll("#exerciseList .card")];
+    const exData=[];
+
+    cards.forEach(card=>{
+      const name=card.querySelector(".title")?.textContent || "";
+      const target=card.querySelector(".target")?.textContent?.replace("Target: ","") || "";
+      const note = card._notesArea ? String(card._notesArea.value || "").trim() : "";
+
+      const sets=[...card.querySelectorAll(".cardBody .grid")].map(grid=>{
+        const ins=[...grid.querySelectorAll("input")];
+        const kg=ins[0]?.value||"";
+        const rep=ins[1]?.value||"";
+        const rir=ins[2]?.value||"";
+        return {kg, rep, rir};
+      });
+
+      exData.push({name, target, note, sets});
+    });
+
+    const workouts=getWorkouts();
+    workouts.push({
+      id: uid(),
+      profileKey, profileLabel,
+      day, week, date,
+      exData,
+      createdAt: Date.now()
+    });
+
+    setWorkouts(workouts);
+    toast("Allenamento salvato");
+  };
+
+  // ----------------- WEEK SAVE -----------------
+  $("saveWeek").onclick=()=>{
+    const profileKey = $("w_profile").value || activeProfileKey();
+    const profileLabel = PROFILES[profileKey]?.label || profileKey;
+
+    const week = $("w_week").value;
+    const done = $("w_done").value.trim();
+    const decision = $("w_decision").value;
+    const reason = $("w_reason").value.trim();
+
+    if(!week || !decision){
+      toast("Settimana e Decisione obbligatorie");
+      return;
+    }
+
+    const arr=getWeeks();
+    arr.push({
+      id: uid(),
+      profileKey, profileLabel,
+      week, done, decision, reason,
+      createdAt: Date.now()
+    });
+
+    setWeeks(arr);
+    toast("Settimana salvata");
+  };
+
+  // ----------------- HISTORY -----------------
+  function renderHistory(){
+    const workouts=getWorkouts().slice().sort((a,b)=>b.createdAt-a.createdAt);
+    const weeks=getWeeks().slice().sort((a,b)=>b.createdAt-a.createdAt);
+
+    let out="ALLENAMENTI (ultimi 20)\n";
+    if(workouts.length===0) out+="(nessun allenamento salvato)\n";
+    workouts.slice(0,20).forEach(w=>{
+      out += `• ${w.date} | ${w.profileKey} | ${w.day} | Settimana ${w.week}\n`;
+    });
+
+    out += "\nSETTIMANE (ultime 20)\n";
+    if(weeks.length===0) out+="(nessuna settimana salvata)\n";
+    weeks.slice(0,20).forEach(x=>{
+      out += `• ${x.profileKey} | Settimana ${x.week} → ${x.decision} (${x.reason||"—"})\n`;
+    });
+
+    $("historyList").textContent=out;
+  }
+
+  // ----------------- BACKUP JSON -----------------
+  $("exportJson").onclick=()=>{
+    const payload={
+      workouts:getWorkouts(),
+      weeks:getWeeks(),
+      exportedAt:new Date().toISOString(),
+      version:"v4_fullscreen_timer"
+    };
+    const blob=new Blob([JSON.stringify(payload,null,2)], {type:"application/json"});
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download=`MASTER2026_backup_${todayISO()}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    toast("Backup esportato");
+  };
+
+  $("importJson").addEventListener("change", async (e)=>{
+    const f=e.target.files?.[0];
+    if(!f) return;
+    const txt=await f.text();
+    try{
+      const data=JSON.parse(txt);
+      if(Array.isArray(data.workouts)) setWorkouts(data.workouts);
+      if(Array.isArray(data.weeks)) setWeeks(data.weeks);
+      toast("Backup importato");
+    }catch{
+      toast("File non valido");
+    }
+    e.target.value="";
+  });
+
+  $("wipeAll").onclick=()=>{
+    const ok = confirm("Cancello TUTTI i dati salvati sul telefono. Sei sicuro?");
+    if(!ok) return;
+    localStorage.removeItem(LS_KEYS.workouts);
+    localStorage.removeItem(LS_KEYS.week);
+    toast("Dati cancellati");
+    renderHistory();
+  };
+
+  // ----------------- INIT -----------------
+  initProfileSelect();
+  fillWeekSelect("week", 16);
+  fillWeekSelect("w_week", 16);
+
+  $("week").addEventListener("change", ()=>{ $("w_week").value = $("week").value; });
+  $("w_week").addEventListener("change", ()=>{ $("week").value = $("w_week").value; });
+
+  $("profile").value = "C1";
+  $("w_profile").value = "C1";
+  $("profileHint").textContent = PROFILES["C1"].hint;
+
+  initDaySelect();
+
+  $("date").value = todayISO();
+  $("week").value = "1";
+  $("w_week").value = "1";
+
+  renderExercises();
+</script>
+</body>
+</html>
