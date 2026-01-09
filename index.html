@@ -1086,9 +1086,14 @@ if ("serviceWorker" in navigator) {
   });
 }
 <script>
-  document.getElementById("tabCheck").addEventListener("click", () => {
-    window.location.href = "check.html";
-  });
+  // Intercetta PRIMA degli altri handler del menu (capture = true)
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("#tabCheck");
+    if (!btn) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    window.location.assign("check.html");
+  }, true);
 </script>
 </body>
 </html>
