@@ -1,12 +1,599 @@
 <!doctype html>
 <html lang="it">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>CHECK — TEST</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#0b0f14" />
+  <title>MASTER 2026 — CHECK</title>
+  <style>
+    :root{
+      --bg:#0b0f14; --card:#111827; --muted:#9ca3af; --text:#e5e7eb;
+      --line:#1f2937; --accent:#60a5fa;
+      --g:#22c55e; --y:#f59e0b; --r:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;}
+    header{position:sticky;top:0;background:rgba(11,15,20,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);z-index:10}
+    .wrap{max-width:980px;margin:0 auto;padding:12px 12px 18px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .title{font-weight:900;font-size:16px}
+    .pill{padding:6px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:12px}
+    .btn{background:transparent;border:1px solid var(--line);color:var(--text);padding:10px 12px;border-radius:12px;cursor:pointer}
+    .btn.primary{border-color:transparent;background:var(--accent);color:#06101c;font-weight:900}
+    .btn.danger{border-color:transparent;background:var(--r);color:#120606;font-weight:900}
+    .grid{display:grid;gap:12px}
+    @media(min-width:900px){ .grid{grid-template-columns:1.25fr .75fr} }
+    .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px}
+    .card h2{margin:0 0 10px;font-size:14px;color:var(--muted);font-weight:800}
+    label{display:block;font-size:12px;color:var(--muted);margin:8px 0 6px}
+    input,select,textarea{
+      width:100%;padding:10px 10px;border-radius:12px;border:1px solid var(--line);
+      background:#0c1320;color:var(--text);outline:none
+    }
+    textarea{min-height:72px;resize:vertical}
+    .badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .badge{border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center}
+    .dot{width:10px;height:10px;border-radius:999px;background:var(--line)}
+    .green .dot{background:var(--g)}
+    .yellow .dot{background:var(--y)}
+    .red .dot{background:var(--r)}
+    .green{border-color:rgba(34,197,94,.35)}
+    .yellow{border-color:rgba(245,158,11,.35)}
+    .red{border-color:rgba(239,68,68,.35)}
+    .split{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .muted{color:var(--muted);font-size:12px}
+    .list{display:flex;flex-direction:column;gap:10px}
+    .item{padding:12px;border:1px solid var(--line);border-radius:16px;background:#0c1320}
+    .itemTop{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+    .itemTitle{font-weight:900}
+    .tag{font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);display:flex;gap:6px;align-items:center}
+    .hr{height:1px;background:var(--line);margin:12px 0}
+    .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .thumbs img{width:90px;height:90px;object-fit:cover;border-radius:14px;border:1px solid var(--line)}
+    .ok{padding:10px 12px;border-radius:14px;border:1px solid rgba(34,197,94,.35);background:rgba(34,197,94,.08);color:#bbf7d0;font-size:13px}
+    .err{padding:10px 12px;border-radius:14px;border:1px solid rgba(239,68,68,.35);background:rgba(239,68,68,.08);color:#fecaca;font-size:13px}
+    .warning{padding:10px 12px;border-radius:14px;border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.08);color:#fde68a;font-size:13px}
+  </style>
 </head>
-<body style="font-family:system-ui;background:#0b0f14;color:#e5e7eb;padding:20px">
-  <h1>CHECK OK</h1>
-  <p>Se vedi questa pagina, il file check.html è online senza toccare l’app.</p>
+<body>
+<header>
+  <div class="wrap">
+    <div class="row" style="justify-content:space-between">
+      <div class="row">
+        <div class="title">MASTER 2026 — CHECK</div>
+        <div class="pill" id="pillToday"></div>
+      </div>
+      <div class="row">
+        <button class="btn" id="btnExport">Export</button>
+        <button class="btn" id="btnImport">Import</button>
+        <button class="btn danger" id="btnReset">Reset check</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="grid">
+
+    <section class="card">
+      <h2>CHECK SETTIMANALE</h2>
+
+      <div class="split">
+        <div>
+          <label>Data (id = data)</label>
+          <input id="wDate" type="date" />
+        </div>
+        <div>
+          <label>Macrociclo</label>
+          <select id="wMacro"><option>1</option><option>2</option><option>3</option><option>4</option></select>
+        </div>
+      </div>
+
+      <div class="split">
+        <div>
+          <label>Peso (kg)</label>
+          <input id="wWeight" type="number" step="0.1" inputmode="decimal" />
+        </div>
+        <div>
+          <label>Glicemia digiuno (mg/dL) — 1 valore</label>
+          <input id="wGly" type="number" step="1" inputmode="numeric" />
+        </div>
+      </div>
+
+      <div class="split">
+        <div>
+          <label>Energia (1–10)</label>
+          <input id="wEnergy" type="number" min="1" max="10" step="1" inputmode="numeric" />
+        </div>
+        <div>
+          <label>Neuropatia</label>
+          <select id="wNeuro"><option value="=">=</option><option value="↓">↓</option><option value="↑">↑</option></select>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:12px;background:#0c1320">
+        <h2>Misure corpo (cm)</h2>
+        <div class="split">
+          <div>
+            <label>Vita (obbligatoria)</label>
+            <input id="mWaist" type="number" step="0.1" inputmode="decimal" />
+          </div>
+          <div>
+            <label>Fianchi (opzionale)</label>
+            <input id="mHip" type="number" step="0.1" inputmode="decimal" />
+          </div>
+        </div>
+        <div class="split">
+          <div>
+            <label>Petto</label>
+            <input id="mChest" type="number" step="0.1" inputmode="decimal" />
+          </div>
+          <div>
+            <label>Braccio</label>
+            <input id="mArm" type="number" step="0.1" inputmode="decimal" />
+          </div>
+        </div>
+        <div class="split">
+          <div>
+            <label>Coscia</label>
+            <input id="mThigh" type="number" step="0.1" inputmode="decimal" />
+          </div>
+          <div class="muted" style="padding-top:26px">Vita = misura chiave</div>
+        </div>
+      </div>
+
+      <label>Nota (max 240)</label>
+      <textarea id="wNote" maxlength="240"></textarea>
+
+      <div class="badges">
+        <div class="badge" id="bWeight"><span class="dot"></span><span>Peso</span></div>
+        <div class="badge" id="bGly"><span class="dot"></span><span>Glicemia</span></div>
+        <div class="badge" id="bEnergy"><span class="dot"></span><span>Energia</span></div>
+        <div class="badge" id="bWaist"><span class="dot"></span><span>Vita</span></div>
+        <div class="badge" id="bNeuro"><span class="dot"></span><span>Neuropatia</span></div>
+        <div class="badge" id="bGlobal"><span class="dot"></span><span>Stato</span></div>
+      </div>
+
+      <label>Frase finale (solo consentite)</label>
+      <select id="wPhrase"></select>
+
+      <div class="row" style="margin-top:12px;justify-content:flex-end">
+        <button class="btn primary" id="btnSaveWeekly">Salva settimanale</button>
+      </div>
+
+      <div class="hr"></div>
+
+      <h2>CHECK MENSILE (foto SOLO qui)</h2>
+      <div class="warning">Legge gli ultimi 4 settimanali. Tu aggiungi nota + frase + foto (se vuoi).</div>
+
+      <div class="split" style="margin-top:10px">
+        <div>
+          <label>Data mensile</label>
+          <input id="moDate" type="date" />
+        </div>
+        <div>
+          <label>Macrociclo</label>
+          <select id="moMacro"><option>1</option><option>2</option><option>3</option><option>4</option></select>
+        </div>
+      </div>
+
+      <label>Nota mensile (max 240)</label>
+      <textarea id="moNote" maxlength="240"></textarea>
+
+      <label>Frase finale mensile</label>
+      <select id="moPhrase"></select>
+
+      <label>Foto (opzionali)</label>
+      <input id="moPhotos" type="file" accept="image/*" multiple />
+
+      <div class="row" style="margin-top:12px;justify-content:flex-end">
+        <button class="btn primary" id="btnSaveMonthly">Salva mensile</button>
+      </div>
+
+      <div id="msg" style="margin-top:12px"></div>
+    </section>
+
+    <section class="card">
+      <h2>STORICO CHECK</h2>
+
+      <div class="split">
+        <div>
+          <label>Filtro</label>
+          <select id="filterType">
+            <option value="all">Tutti</option>
+            <option value="settimanale">Settimanali</option>
+            <option value="mensile">Mensili</option>
+          </select>
+        </div>
+        <div>
+          <label>Macrociclo</label>
+          <select id="filterMacro">
+            <option value="all">Tutti</option>
+            <option>1</option><option>2</option><option>3</option><option>4</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px;justify-content:space-between">
+        <div class="muted" id="stats"></div>
+        <button class="btn" id="btnRefresh">Aggiorna</button>
+      </div>
+
+      <div class="hr"></div>
+      <div class="list" id="list"></div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = "MASTER2026_CHECKS";
+
+const WEEKLY_PHRASES = {
+  green: [
+    "Tutto stabile → continuo senza modifiche",
+    "Trend positivo → proseguo come pianificato"
+  ],
+  yellow: [
+    "Segnali di affaticamento → monitoro per 7 giorni",
+    "Oscillazioni leggere → nessuna modifica, osservo il trend"
+  ],
+  red: {
+    neuro: "Neuropatia in aumento → riduco volume, obiettivo invariato",
+    gly: "Glicemia instabile → stop progressioni, priorità controllo",
+    energy: "Energia bassa 2ª settimana → riduco carico sistemico",
+    critical: [
+      "STOP progressioni — salute prioritaria",
+      "Deload anticipato per segni di overreaching"
+    ]
+  }
+};
+
+const MONTHLY_PHRASES = [
+  "Proseguo Macrociclo attuale fino al deload programmato",
+  "Anticipo deload di 1 settimana",
+  "Riduzione aggressività del macrociclo",
+  "Estensione macrociclo per stabilità metabolica"
+];
+
+function todayISO(){
+  const d=new Date();
+  const off=d.getTimezoneOffset();
+  return new Date(d.getTime()-off*60000).toISOString().slice(0,10);
+}
+function loadChecks(){ try{return JSON.parse(localStorage.getItem(STORAGE_KEY))||[];}catch{return [];} }
+function saveChecks(a){ localStorage.setItem(STORAGE_KEY, JSON.stringify(a)); }
+function upsertCheck(c){
+  const a=loadChecks();
+  const i=a.findIndex(x=>x.id===c.id);
+  if(i>=0) a[i]=c; else a.push(c);
+  a.sort((x,y)=>(x.data||"").localeCompare(y.data||""));
+  saveChecks(a);
+  return i>=0?"updated":"created";
+}
+function lastWeeklyBefore(dateISO){
+  const a=loadChecks().filter(x=>x.tipo==="settimanale").sort((x,y)=>x.data.localeCompare(y.data));
+  const idx=a.findIndex(x=>x.data===dateISO);
+  if(idx>0) return a[idx-1];
+  if(idx===-1) return a.length?a[a.length-1]:null;
+  return null;
+}
+
+function setBadge(el,color,text){
+  el.classList.remove("green","yellow","red");
+  el.classList.add(color);
+  el.querySelector("span:last-child").textContent=text;
+}
+function classifyWeight(curr, prev){
+  if(!Number.isFinite(curr)||!Number.isFinite(prev)) return {color:"yellow", label:"Peso"};
+  const d=+(curr-prev).toFixed(1);
+  if(d<=0.5) return {color:"green", label:`Peso Δ ${d} kg`};
+  if(d<=1.0) return {color:"yellow", label:`Peso Δ ${d} kg`};
+  return {color:"red", label:`Peso Δ ${d} kg`};
+}
+function classifyGly(v){
+  if(!Number.isFinite(v)) return {color:"yellow", label:"Glicemia"};
+  if(v<=100) return {color:"green", label:`Glicemia ${v}`};
+  if(v<=110) return {color:"yellow", label:`Glicemia ${v}`};
+  return {color:"red", label:`Glicemia ${v}`};
+}
+function classifyEnergy(curr, prev){
+  if(!Number.isFinite(curr)) return {color:"yellow", label:"Energia"};
+  if(curr>=6) return {color:"green", label:`Energia ${curr}`};
+  if(curr>=4) return {color:"yellow", label:`Energia ${curr}`};
+  if(Number.isFinite(prev) && prev<=3) return {color:"red", label:`Energia ${curr} (2ª sett.)`};
+  return {color:"yellow", label:`Energia ${curr} (1ª sett.)`};
+}
+function classifyNeu(trend){
+  if(trend==="↑") return {color:"red", label:"Neuropatia ↑"};
+  if(trend==="↓") return {color:"green", label:"Neuropatia ↓"};
+  return {color:"green", label:"Neuropatia ="};
+}
+function classifyWaist(curr, prev){
+  if(!Number.isFinite(curr)) return {color:"yellow", label:"Vita"};
+  if(!Number.isFinite(prev)) return {color:"green", label:"Vita"};
+  const d=+(curr-prev).toFixed(1);
+  if(d<=0) return {color:"green", label:`Vita Δ ${d} cm`};
+  if(d<=1.0) return {color:"yellow", label:`Vita Δ +${d} cm`};
+  return {color:"red", label:`Vita Δ +${d} cm`};
+}
+function globalStatus(classes){
+  if(classes.neuro.color==="red") return "red";
+  if(classes.gly.color==="red") return "red";
+  const y=[classes.weight,classes.energy,classes.waist].filter(x=>x.color==="yellow").length;
+  return y>=2 ? "yellow" : "green";
+}
+function allowedWeeklyPhrases(status, classes, prev){
+  if(status==="green") return WEEKLY_PHRASES.green;
+  if(status==="yellow") return WEEKLY_PHRASES.yellow;
+  const out=[];
+  if(classes.neuro.color==="red") out.push(WEEKLY_PHRASES.red.neuro);
+  if(classes.gly.color==="red") out.push(WEEKLY_PHRASES.red.gly);
+  if(classes.energy.color==="red") out.push(WEEKLY_PHRASES.red.energy);
+  if(prev && prev._statusGlobal==="red") out.push(...WEEKLY_PHRASES.red.critical);
+  return out.length?out:WEEKLY_PHRASES.yellow;
+}
+
+function numOrNull(v){ const n=Number(v); return Number.isFinite(n)?n:null; }
+
+function setMsg(type, text){
+  const el=document.getElementById("msg");
+  if(!text){ el.innerHTML=""; return; }
+  el.innerHTML = `<div class="${type==="ok"?"ok":"err"}">${text}</div>`;
+}
+
+async function filesToBase64(fileList){
+  const files=[...(fileList||[])];
+  const out=[];
+  for(const f of files){
+    const b64 = await new Promise((res,rej)=>{
+      const r=new FileReader();
+      r.onload=()=>res(r.result);
+      r.onerror=rej;
+      r.readAsDataURL(f);
+    });
+    out.push({ id:(crypto?.randomUUID?crypto.randomUUID():String(Date.now())+Math.random()).slice(0,18), src:b64 });
+  }
+  return out;
+}
+
+function renderWeeklyComputed(){
+  const date = document.getElementById("wDate").value;
+  const prev = lastWeeklyBefore(date);
+
+  const check = {
+    pesoKg: numOrNull(document.getElementById("wWeight").value),
+    glicemia: numOrNull(document.getElementById("wGly").value),
+    energia: numOrNull(document.getElementById("wEnergy").value),
+    neuropatia: document.getElementById("wNeuro").value,
+    vita: numOrNull(document.getElementById("mWaist").value),
+  };
+
+  const classes = {
+    weight: classifyWeight(check.pesoKg, prev?.pesoKg),
+    gly: classifyGly(check.glicemia),
+    energy: classifyEnergy(check.energia, prev?.energia),
+    waist: classifyWaist(check.vita, prev?.misure?.vita),
+    neuro: classifyNeu(check.neuropatia)
+  };
+
+  const status = globalStatus(classes);
+
+  setBadge(document.getElementById("bWeight"), classes.weight.color, classes.weight.label);
+  setBadge(document.getElementById("bGly"), classes.gly.color, classes.gly.label);
+  setBadge(document.getElementById("bEnergy"), classes.energy.color, classes.energy.label);
+  setBadge(document.getElementById("bWaist"), classes.waist.color, classes.waist.label);
+  setBadge(document.getElementById("bNeuro"), classes.neuro.color, classes.neuro.label);
+  setBadge(document.getElementById("bGlobal"), status, `Stato ${status.toUpperCase()}`);
+
+  const phrases = allowedWeeklyPhrases(status, classes, prev);
+  const sel = document.getElementById("wPhrase");
+  const keep = sel.value;
+  sel.innerHTML="";
+  phrases.forEach(p=>{ const o=document.createElement("option"); o.value=p; o.textContent=p; sel.appendChild(o); });
+  if(phrases.includes(keep)) sel.value=keep;
+
+  return { classes, status, prev };
+}
+
+function renderMonthlyPhrases(){
+  const sel=document.getElementById("moPhrase");
+  sel.innerHTML="";
+  MONTHLY_PHRASES.forEach(p=>{ const o=document.createElement("option"); o.value=p; o.textContent=p; sel.appendChild(o); });
+}
+
+function renderList(){
+  const ft=document.getElementById("filterType").value;
+  const fm=document.getElementById("filterMacro").value;
+  let a=loadChecks().slice().sort((x,y)=>(y.data||"").localeCompare(x.data||""));
+
+  if(ft!=="all") a=a.filter(x=>x.tipo===ft);
+  if(fm!=="all") a=a.filter(x=>String(x.macrociclo)===fm);
+
+  const all=loadChecks();
+  document.getElementById("stats").textContent =
+    `Tot: ${a.length} • Sett: ${all.filter(x=>x.tipo==="settimanale").length} • Mens: ${all.filter(x=>x.tipo==="mensile").length}`;
+
+  const list=document.getElementById("list");
+  list.innerHTML="";
+  a.forEach(c=>{
+    const status=c._statusGlobal || (c.tipo==="mensile" ? "green":"yellow");
+    const div=document.createElement("div");
+    div.className="item";
+    div.innerHTML = `
+      <div class="itemTop">
+        <div class="itemTitle">${c.data} — ${c.tipo.toUpperCase()} (M${c.macrociclo})</div>
+        <div class="tag ${status}"><span class="dot"></span><span>${status.toUpperCase()}</span></div>
+      </div>
+      <div class="muted" style="margin-top:6px">${c.fraseFinale||""}</div>
+      ${c.tipo==="settimanale" ? `
+        <div class="row" style="margin-top:8px">
+          <div class="tag"><span class="dot"></span><span>Peso: ${c.pesoKg ?? "—"}</span></div>
+          <div class="tag"><span class="dot"></span><span>Glicemia: ${c.glicemia ?? "—"}</span></div>
+          <div class="tag"><span class="dot"></span><span>Energia: ${c.energia ?? "—"}</span></div>
+          <div class="tag"><span class="dot"></span><span>Vita: ${c.misure?.vita ?? "—"}</span></div>
+          <div class="tag"><span class="dot"></span><span>Neuro: ${c.neuropatia ?? "—"}</span></div>
+        </div>
+      ` : `
+        <div class="muted" style="margin-top:8px">Include: ${(c.includeSettimane||[]).join(", ")}</div>
+      `}
+      ${c.nota ? `<div class="muted" style="margin-top:8px;white-space:pre-wrap">${String(c.nota).replaceAll("<","&lt;").replaceAll(">","&gt;")}</div>` : ``}
+      ${c.foto && c.foto.length ? `<div class="thumbs">${c.foto.map(f=>`<img src="${f.src}">`).join("")}</div>` : ``}
+      <div class="row" style="margin-top:10px;justify-content:flex-end">
+        <button class="btn" data-del="${c.id}">Elimina</button>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+
+  list.querySelectorAll("[data-del]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const id=b.getAttribute("data-del");
+      saveChecks(loadChecks().filter(x=>x.id!==id));
+      setMsg("ok", `Eliminato ${id}`);
+      renderList();
+    });
+  });
+}
+
+function wire(){
+  document.getElementById("pillToday").textContent = `Oggi: ${todayISO()}`;
+  document.getElementById("wDate").value = todayISO();
+  document.getElementById("moDate").value = todayISO();
+
+  renderMonthlyPhrases();
+
+  ["wDate","wWeight","wGly","wEnergy","wNeuro","mWaist"].forEach(id=>{
+    const el=document.getElementById(id);
+    el.addEventListener("input", ()=>{ renderWeeklyComputed(); });
+    el.addEventListener("change", ()=>{ renderWeeklyComputed(); });
+  });
+
+  document.getElementById("btnSaveWeekly").addEventListener("click", ()=>{
+    const { classes, status, prev } = renderWeeklyComputed();
+
+    const check={
+      id: document.getElementById("wDate").value,
+      tipo:"settimanale",
+      data: document.getElementById("wDate").value,
+      macrociclo: Number(document.getElementById("wMacro").value),
+
+      pesoKg: numOrNull(document.getElementById("wWeight").value),
+      glicemia: numOrNull(document.getElementById("wGly").value),
+      energia: numOrNull(document.getElementById("wEnergy").value),
+      neuropatia: document.getElementById("wNeuro").value,
+
+      misure:{
+        vita: numOrNull(document.getElementById("mWaist").value),
+        fianchi: numOrNull(document.getElementById("mHip").value),
+        petto: numOrNull(document.getElementById("mChest").value),
+        braccio: numOrNull(document.getElementById("mArm").value),
+        coscia: numOrNull(document.getElementById("mThigh").value)
+      },
+
+      nota: (document.getElementById("wNote").value||"").trim(),
+      fraseFinale: document.getElementById("wPhrase").value,
+
+      _statusGlobal: status,
+      _classes: classes,
+      updatedAt: new Date().toISOString()
+    };
+
+    if(!check.id) return setMsg("err","Manca la data.");
+    if(!Number.isFinite(check.pesoKg)) return setMsg("err","Peso non valido.");
+    if(!Number.isFinite(check.glicemia)) return setMsg("err","Glicemia non valida.");
+    if(!(Number.isFinite(check.energia) && check.energia>=1 && check.energia<=10)) return setMsg("err","Energia non valida (1–10).");
+    if(!Number.isFinite(check.misure.vita)) return setMsg("err","Vita obbligatoria.");
+    if(!["↓","=","↑"].includes(check.neuropatia)) return setMsg("err","Neuropatia non valida.");
+    if((check.nota||"").length>240) return setMsg("err","Nota troppo lunga.");
+
+    const allowed = allowedWeeklyPhrases(status, classes, prev);
+    if(!allowed.includes(check.fraseFinale)) return setMsg("err","Frase finale non consentita.");
+
+    upsertCheck(check);
+    setMsg("ok","Check settimanale salvato.");
+    renderList();
+  });
+
+  document.getElementById("btnSaveMonthly").addEventListener("click", async ()=>{
+    const date=document.getElementById("moDate").value;
+    if(!date) return setMsg("err","Manca la data mensile.");
+
+    const weekly=loadChecks().filter(x=>x.tipo==="settimanale").sort((a,b)=>a.data.localeCompare(b.data));
+    const last4=weekly.slice(-4);
+    if(last4.length<4) return setMsg("err","Servono 4 check settimanali per creare il mensile.");
+
+    const files=document.getElementById("moPhotos").files;
+    const photos = files && files.length ? await filesToBase64(files) : [];
+
+    const check={
+      id: date,
+      tipo:"mensile",
+      data: date,
+      macrociclo: Number(document.getElementById("moMacro").value),
+      includeSettimane: last4.map(x=>x.id),
+      nota: (document.getElementById("moNote").value||"").trim(),
+      fraseFinale: document.getElementById("moPhrase").value,
+      foto: photos.slice(0,6),
+      _statusGlobal: "green",
+      updatedAt: new Date().toISOString()
+    };
+
+    if((check.nota||"").length>240) return setMsg("err","Nota mensile troppo lunga.");
+    if(!MONTHLY_PHRASES.includes(check.fraseFinale)) return setMsg("err","Frase mensile non valida.");
+
+    upsertCheck(check);
+    document.getElementById("moPhotos").value="";
+    setMsg("ok","Check mensile salvato.");
+    renderList();
+  });
+
+  document.getElementById("btnRefresh").addEventListener("click", renderList);
+  document.getElementById("filterType").addEventListener("change", renderList);
+  document.getElementById("filterMacro").addEventListener("change", renderList);
+
+  document.getElementById("btnReset").addEventListener("click", ()=>{
+    if(!confirm("Cancello SOLO i check salvati su questo dispositivo. Sicuro?")) return;
+    localStorage.removeItem(STORAGE_KEY);
+    setMsg("ok","Check cancellati.");
+    renderList();
+    renderWeeklyComputed();
+  });
+
+  document.getElementById("btnExport").addEventListener("click", ()=>{
+    const data={ exportedAt:new Date().toISOString(), checks: loadChecks() };
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url; a.download=`MASTER2026_CHECKS_${todayISO()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setMsg("ok","Export scaricato.");
+  });
+
+  document.getElementById("btnImport").addEventListener("click", ()=>{
+    const inp=document.createElement("input");
+    inp.type="file"; inp.accept="application/json";
+    inp.onchange=async ()=>{
+      const f=inp.files?.[0]; if(!f) return;
+      let obj;
+      try{ obj=JSON.parse(await f.text()); }catch{ return setMsg("err","JSON non valido."); }
+      if(!obj || !Array.isArray(obj.checks)) return setMsg("err","Manca 'checks' nel JSON.");
+
+      const existing=loadChecks();
+      const map=new Map(existing.map(x=>[x.id,x]));
+      obj.checks.forEach(x=>{ if(x && x.id) map.set(x.id,x); });
+      saveChecks([...map.values()].sort((a,b)=>(a.data||"").localeCompare(b.data||"")));
+      setMsg("ok","Import ok (merge).");
+      renderList();
+    };
+    inp.click();
+  });
+
+  renderWeeklyComputed();
+  renderList();
+}
+wire();
+</script>
 </body>
 </html>
