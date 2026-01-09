@@ -1085,6 +1085,10 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./sw.js");
   });
 }
+<script>
+  document.getElementById("tabCheck").addEventListener("click", () => {
+    window.location.href = "check.html";
+  });
 </script>
 </body>
 </html>
